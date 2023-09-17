@@ -23,42 +23,45 @@
 //         |    0.64us   | 0.24us |
 
 const uint8_t LEDPIN = 1;
-const uint8_t NUMLEDS = 3;
+const uint8_t NUMLEDS = 5;
 
-uint8_t currentgain[] =  { 0x02, 0x02, 0x02 };  // BRG value
-
-struct pixel {
+struct __attribute__((packed)) pixel {
     uint16_t b;
     uint16_t r;
     uint16_t g;
 };
 
-struct cgain {
-    uint8_t b;
-    uint8_t r;
-    uint8_t g;
+struct __attribute__((packed)) cgain {
+    unsigned int filled : 1; // Dummy to fill 16 Bits
+    unsigned int b : 5;
+    unsigned int r : 5;
+    unsigned int g : 5;
 };
 
-struct pixel LEDS[NUMLEDS];
-uint8_t LEDGAIN; // will set same for r,g,b. 5 bits only.
+struct databuffer {
+    pixel LEDS[NUMLEDS];
+    cgain GAIN;
+};
+
+databuffer buf;
 
 void setup() 
 {
     delay(100);
-    LEDS[0].r = 0xFF00;
-    LEDS[0].g = 0x0000;
-    LEDS[0].b = 0x0000;
-    LEDS[1].r = 0x0000;
-    LEDS[1].g = 0xFF00;
-    LEDS[1].b = 0x0000;
-    LEDS[2].r = 0x0000;
-    LEDS[2].g = 0x0000;
-    LEDS[2].b = 0xFF00;
+    buf.LEDS[0].r = 0xFF00;
+    buf.LEDS[0].g = 0x0000;
+    buf.LEDS[0].b = 0x0000;
+    buf.LEDS[1].r = 0x0000;
+    buf.LEDS[1].g = 0xFF00;
+    buf.LEDS[1].b = 0x0000;
+    buf.LEDS[2].r = 0x0000;
+    buf.LEDS[2].g = 0x0000;
+    buf.LEDS[2].b = 0xFF00;
 
-    LEDGAIN = 1; // 1=0.71mA, 7=3mA, 13=5mA
-
-    //pinMode(LEDPIN,OUTPUT);
-
+    // 0=0.71mA, 6=3mA, 11=4.7mA
+    //buf.GAIN = (1 << 1) | (1 << 6) | (3 << 11);
+    //buf.GAIN = 0x03;
+    buf.GAIN.r = 1; buf.GAIN.g = 1; buf.GAIN.b = 1;
     // Enable GPIOs
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA;
 
@@ -79,68 +82,25 @@ void inline debugT() {
     GPIOA->BSHR = ((uint32_t)0x10000 << 2);
 }
 
-void inline sendBit0() {
-    GPIOA->BSHR = ((uint32_t)0x0001 << LEDPIN); // target 240ns
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BCR = ((uint32_t)0x0001 << LEDPIN); // target 480ns
-}
-
-void inline sendBit1() {
-    GPIOA->BSHR = ((uint32_t)0x0001 << LEDPIN); // target 640ns
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BSHR = 0;
-    GPIOA->BCR = ((uint32_t)0x0001 << LEDPIN); // target 240ns
-}
-
-
-void sendDataX() {
-    uint16_t col, bit;
-    int i=0;
-    for (i=0; i < NUMLEDS*3; i++) {
-        col = *((uint16_t*)&LEDS + i);
-        for (bit=0; bit<16; bit++){
-            if ( (col & (0x8000 >> bit) )  ) { // && (led == led_index)
-                sendBit1();
-            } else {
-                sendBit0();
-            }
-        }
-    }
-    for (i=0; i < 3; i++) {
-        for (bit=0; bit<5; bit++){
-            if ( (LEDGAIN & (0x10 >> bit) )  ) { // && (led == led_index)
-                sendBit1();
-            } else {
-                sendBit0();
-            }
-        }
-    }
-}
-
-
 void sendData() {
-    uint16_t col, bit;
-    int i=0;
-
-    for (i=0; i < NUMLEDS*3*16; i++) {
-        if((*((uint16_t*)&LEDS + (i>>4))) & (0x8000 >> (i&4))) {
+    uint16_t i=0; // i iterates over all Bits
+    for (i=0; i < NUMLEDS*3*16 + 15; i++) { // LEDs * 3 Channels * 16 Bis per channel + 15 Current Gain bits
+        if((*((uint16_t*)&buf + (i>>4))) & (0x8000 >> (i&0xF))) { // i>>4 addresses the 16
             // Queue 1
             GPIOA->BSHR = ((uint32_t)0x00001 << LEDPIN);
+            GPIOA->BSHR = 0;
             GPIOA->BSHR = ((uint32_t)0x00001 << LEDPIN);
+            GPIOA->BSHR = 0;
+            GPIOA->BSHR = ((uint32_t)0x00001 << LEDPIN);
+            GPIOA->BSHR = 0;
+            GPIOA->BSHR = ((uint32_t)0x00001 << LEDPIN);
+            GPIOA->BSHR = 0;
+            GPIOA->BSHR = ((uint32_t)0x00001 << LEDPIN);
+            GPIOA->BSHR = 0;
+            GPIOA->BSHR = ((uint32_t)0x00001 << LEDPIN);
+            GPIOA->BSHR = 0;
+            GPIOA->BSHR = ((uint32_t)0x00001 << LEDPIN);
+            GPIOA->BSHR = 0;
             GPIOA->BSHR = ((uint32_t)0x10000 << LEDPIN);
         } else {
             // Queue 0
@@ -149,42 +109,48 @@ void sendData() {
             GPIOA->BSHR = ((uint32_t)0x10000 << LEDPIN);
         }
     }
-
-
-    for (i=0; i < 3; i++) {
-        for (bit=0; bit<5; bit++){
-            if ( (LEDGAIN & (0x10 >> bit) )  ) { // && (led == led_index)
-                sendBit1();
-            } else {
-                sendBit0();
-            }
-        }
-    }
 }
 
 
+pixel hue2rgb(uint16_t hue, uint16_t brightness = 65535) {
+    // https://blog.adafruit.com/2012/03/14/constant-brightness-hsb-to-rgb-algorithm/
+    const uint16_t step = 65535/3;
+    pixel p;
+    if(0 <= hue && hue < step) {
+        p.b = 0;
+        p.g = hue*3;
+        p.r = 65535 - hue*3;
+    } else 
+    if(step <= hue && hue < step*2) {
+        p.r = 0;
+        p.b = (hue-step)*3;
+        p.g = 65535 - (hue-step)*3;
+    } else 
+    if(step*2 <= hue && hue < step*3) {
+        p.g = 0;
+        p.r = (hue-step*2)*3;
+        p.b = 65535 - (hue-step*2)*3;
+    } else {
+        p.g = 0;
+        p.b = 0;
+        p.r = 65535;
+    }
+    p.r = p.r * brightness / 65535;
+    p.g = p.g * brightness / 65535;
+    p.b = p.b * brightness / 65535;
+    return p;
+}
 
-
+uint16_t i = 0;
 void loop()
 {
-    // Init data with only one led ON
-    //digitalWrite(LEDPIN,HIGH);
-    //delay(1);
-    //sendData();
-    //digitalWrite(LEDPIN,LOW);
-    /*
-    sendBit(0);
-    sendBit(0);
-    sendBit(1);
-    sendBit(1);
-    sendBit(0);
-    sendBit(1);
-    sendBit(0);
-    sendBit(1);
-    */
+    buf.LEDS[0] = hue2rgb(i);
+    buf.LEDS[1] = hue2rgb(i + 65535/3);
+    buf.LEDS[2] = hue2rgb(i + (65535/3)*2);
+    i+=255;
     debugT();
     sendData();
-    delay(1);
+    delay(10);
 }
 
 // 4,7 / 17,4
