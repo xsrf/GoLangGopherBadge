@@ -115,8 +115,8 @@ void heart(uint8_t speed = 4, uint8_t bands = 6) {
     for(uint k = 0; k < NUMLEDS; k++) {
         buf.LEDS[k] = hue2rgb(GLOBAL_CNT*(300-(10*speed)) + (65535/bands)*(k%5), 10000);
     }
+    //setColor(buf.LEDS[0], 0, 0, 0);
     /*
-    setColor(buf.LEDS[0], 0, 0, 0);
     setColor(buf.LEDS[2], 0, 0, 0);
     setColor(buf.LEDS[4], 0, 0, 0);
     setColor(buf.LEDS[15], 0, 0, 0);
@@ -138,8 +138,6 @@ void loop()
         case __COUNTER__: colorbands(SUBMODE+1,5); break;
         case __COUNTER__: colorbands(SUBMODE+1,10); break;
         case __COUNTER__: colorbands(SUBMODE+1,100); break;
-        case __COUNTER__: heart(SUBMODE+1,10); break;
-        case __COUNTER__: heart(SUBMODE+1,100); break;
         default: MODE = 0; break;
     }
     btnCheck();
