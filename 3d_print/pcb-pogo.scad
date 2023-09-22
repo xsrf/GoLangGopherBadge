@@ -2,8 +2,8 @@
 
 scale([-1,1,1]) difference(){
     cube([50,70,20],center=true);
-    translate([-22.95,-96.05,8]) linear_extrude(20) offset(0.35,$fn=64) import(file = "pcb_outline.svg");
-    translate([-22.95,-96.05,3]) linear_extrude(20) offset(-0.4) import(file = "pcb_outline.svg");
+    translate([-22.95,-96.05,8]) linear_extrude(20) offset(0.35,$fn=64) import(file = "../pcb/pcb_outline.svg");
+    translate([-22.95,-96.05,3]) linear_extrude(20) offset(-0.4) import(file = "../pcb/pcb_outline.svg");
     translate([0,-37,-12]) cylinder(r=12,h=30);
     translate([0,37,-12]) cylinder(r=12,h=30);
     translate([10,11.34,0]) #pogo(); // 3V3
