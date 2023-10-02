@@ -9,13 +9,13 @@ const uint8_t NUMLEDS = 25;
 const uint8_t LED_PIN = 1;
 GPIO_TypeDef* LED_PORT = GPIOA;
 
-struct __attribute__((packed)) pixel {
+struct pixel {
     uint16_t b;
     uint16_t r;
     uint16_t g;
 };
 
-struct __attribute__((packed)) cgain {
+struct cgain {
     unsigned int filled : 1; // Dummy to fill 16 Bits
     unsigned int b : 5;
     unsigned int r : 5;
@@ -23,11 +23,11 @@ struct __attribute__((packed)) cgain {
 };
 
 struct databuffer {
-    pixel LEDS[NUMLEDS];
-    cgain GAIN;
+    pixel LEDS[NUMLEDS] __attribute__((packed)) ;
+    cgain GAIN __attribute__((packed));
 };
 
-databuffer buf;
+databuffer buf __attribute__((aligned(64)));
 pixel cBlack;
 pixel cWhite;
 
@@ -40,7 +40,7 @@ void LEDsInit() {
     LED_PORT->CFGLR |= (GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*LED_PIN);
 
     // Standard Colors
-    cWhite.r = cWhite.g = cWhite.b = 0xFF;
+    cWhite.r = cWhite.g = cWhite.b = 0x00FF;
     cBlack.r = cBlack.g = cBlack.b = 0;
     buf.GAIN.r = buf.GAIN.g = buf.GAIN.b = 0;
     }
