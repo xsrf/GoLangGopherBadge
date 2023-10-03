@@ -46,11 +46,10 @@ void setup()
 {
     delay(100);
 
-    // 0=0.71mA, 6=3mA, 11=4.7mA
-    buf.GAIN.r = 0; buf.GAIN.g = 0; buf.GAIN.b = 0; // lowest gain possible to save power (is still bright)
-
     BtnInit();
     LEDsInit();
+    // 0=0.71mA, 6=3mA, 11=4.7mA
+    setGain(1,1,1); // lowest gain possible to save power (is still bright)
 
     initScroll();
 }
@@ -68,10 +67,10 @@ void btnCheck() {
       GLOBAL_CNT = 0;
       pixel c;
       c.r = c.g = c.b = 0xFFFF;
-      buf.LEDS[0] = c;
-      buf.LEDS[4] = c;
-      buf.LEDS[20] = c;
-      buf.LEDS[24] = c;
+      setColor(0, c);
+      setColor(4, c);
+      setColor(20, c);
+      setColor(24, c);
     }
   } else {
     if(BTN_PRESS_CNT > 1 && BTN_PRESS_CNT < LONG_PRESS_CNT) {
@@ -92,38 +91,53 @@ void scrollTextRGB() {
     }
 
     for(uint k = 0; k < NUMLEDS; k++) {
-        buf.LEDS[k] = matrix.leds[k] ? hue2rgb(GLOBAL_CNT*255 + (65535/NUMLEDS)*k, 10000) : cBlack;
+        setColor(k, matrix.leds[k] ? hue2rgb(GLOBAL_CNT*255 + (65535/NUMLEDS)*k, 10000) : cBlack);
     }
 }
 
 void white_sparkles_fade(uint8_t div = 1) {
-    if(GLOBAL_CNT % div == 0) for(uint8_t i=0; i<NUMLEDS; i++) buf.LEDS[i] = fadeBlack(buf.LEDS[i]);
+    if(GLOBAL_CNT % div == 0) for(uint8_t i=0; i<NUMLEDS; i++) fadeBlack(i);
     if((GLOBAL_CNT % (2 + SUBMODE)) == 0) {
         pixel c;
         c.g = c.b = 0x3FFF;
-        buf.LEDS[getRandomPixel()] = c;
+        setColor(getRandomPixel(), c);
     }
 }
 
 void colorbands(uint8_t speed = 4, uint8_t bands = 6) {
     for(uint k = 0; k < NUMLEDS; k++) {
-        buf.LEDS[k] = hue2rgb(GLOBAL_CNT*(300-(10*speed)) + (65535/bands)*(k%5), 10000);
+        setColor(k, hue2rgb(GLOBAL_CNT*(300-(10*speed)) + (65535/bands)*(k%5), 10000));
     }
 }
 
 void heart(uint8_t speed = 4, uint8_t bands = 6) {
     for(uint k = 0; k < NUMLEDS; k++) {
-        buf.LEDS[k] = hue2rgb(GLOBAL_CNT*(300-(10*speed)) + (65535/bands)*(k%5), 10000);
-    }
-    setColor(buf.LEDS[0], 0, 0, 0);
-    setColor(buf.LEDS[2], 0, 0, 0);
-    setColor(buf.LEDS[4], 0, 0, 0);
-    setColor(buf.LEDS[15], 0, 0, 0);
-    setColor(buf.LEDS[19], 0, 0, 0);
-    setColor(buf.LEDS[20], 0, 0, 0);
-    setColor(buf.LEDS[21], 0, 0, 0);
-    setColor(buf.LEDS[23], 0, 0, 0);
-    setColor(buf.LEDS[24], 0, 0, 0);
+        setColor(k, hue2rgb(GLOBAL_CNT*(300-(10*speed)) + (65535/bands)*(k%5), 10000));
+    }    
+    setColor(0, 0, 0, 0);
+    setColor(2, 0, 0, 0);
+    setColor(4, 0, 0, 0);
+    setColor(15, 0, 0, 0);
+    setColor(19, 0, 0, 0);
+    setColor(20, 0, 0, 0);
+    setColor(21, 0, 0, 0);
+    setColor(23, 0, 0, 0);
+    setColor(24, 0, 0, 0);
+}
+
+void debug() {
+    // For checking RGB color channel order and databits are okay
+    setColor(0,0xF00F,0x02,0x03);
+    setColor(1,0x02,0xF00F,0x03);
+    setColor(2,0x02,0x03,0xF00F);
+}
+
+void debug2() {
+    // For checking RGB current gain channels order is correct
+    setGain(10,0,0);
+    setColor(0,0xFF,0xFF,0xFF);
+    setColor(1,0xFF,0xFF,0xFF);
+    setColor(2,0xFF,0xFF,0xFF);
 }
 
 void loop()
@@ -136,6 +150,7 @@ void loop()
         case __COUNTER__: colorbands(SUBMODE+1,5); break;
         case __COUNTER__: colorbands(SUBMODE+1,10); break;
         case __COUNTER__: heart(SUBMODE+1,100); break;
+        case __COUNTER__: heart(SUBMODE+1,5); break;
         default: MODE = 0; break;
     }
     btnCheck();
