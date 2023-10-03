@@ -15,21 +15,15 @@ struct pixel {
     uint16_t g;
 };
 
-struct cgain {
-    unsigned int filled : 1; // Dummy to fill 16 Bits
-    unsigned int b : 5;
-    unsigned int r : 5;
-    unsigned int g : 5;
-};
+uint16_t buf[NUMLEDS*3+1]; // Databuffer for NUMLEDS LEDs (16bit BRG) + 15bit Gain
 
-struct databuffer {
-    pixel LEDS[NUMLEDS] __attribute__((packed)) ;
-    cgain GAIN __attribute__((packed));
-};
-
-databuffer buf __attribute__((aligned(64)));
 pixel cBlack;
 pixel cWhite;
+
+void setGain(uint8_t r, uint8_t g, uint8_t b) {
+    // 16 bit value with 5bit for each color: gggggrrrrrbbbbb0
+    buf[NUMLEDS*3] = (g | ((r & 0x1F) << 5) | ((b & 0x1F) << 10)) << 1;
+}
 
 void LEDsInit() {
     // Enable GPIOs
@@ -42,8 +36,8 @@ void LEDsInit() {
     // Standard Colors
     cWhite.r = cWhite.g = cWhite.b = 0x00FF;
     cBlack.r = cBlack.g = cBlack.b = 0;
-    buf.GAIN.r = buf.GAIN.g = buf.GAIN.b = 0;
-    }
+    setGain(0, 0, 0);
+}
 
 //      SK9814
 //      Bits encoded as pulses as follows:
@@ -71,7 +65,7 @@ void LEDsInit() {
 void sendData() {
     uint16_t i=0; // i iterates over all Bits
     for (i=0; i < NUMLEDS*3*16 + 15; i++) { // LEDs * 3 Channels * 16 Bis per channel + 15 Current Gain bits
-        if((*((uint16_t*)&buf + (i>>4))) & (0x8000 >> (i&0xF))) { // i>>4 addresses the 16
+        if(buf[i>>4] & (0x8000 >> (i&0xF))) { // i>>4 addresses the 16
             // Queue 1
             LED_PORT->BSHR = ((uint32_t)0x00001 << LED_PIN);
             LED_PORT->BSHR = 0;
@@ -139,8 +133,22 @@ pixel fadeBlack(pixel color) {
     return color;
 }
 
-void setColor(pixel &c, uint16_t r, uint16_t g, uint16_t b) {
-    c.r = r;
-    c.g = g;
-    c.b = b;
+void fadeBlack(uint16_t index) {
+    buf[index*3+0] = buf[index*3+0] >> 1;
+    buf[index*3+1] = buf[index*3+1] >> 1;
+    buf[index*3+2] = buf[index*3+2] >> 1;
+}
+
+void setColor(uint16_t index, uint16_t r, uint16_t g, uint16_t b) {
+    index = index % NUMLEDS;
+    buf[index*3+0] = b;
+    buf[index*3+1] = r;
+    buf[index*3+2] = g;
+}
+
+void setColor(uint16_t index, pixel color) {
+    index = index % NUMLEDS;
+    buf[index*3+0] = color.b;
+    buf[index*3+1] = color.r;
+    buf[index*3+2] = color.g;
 }
