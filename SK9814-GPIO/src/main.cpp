@@ -23,7 +23,7 @@
 //         |    0.64us   | 0.24us |
 
 const uint8_t LEDPIN = 1;
-const uint8_t NUMLEDS = 5;
+const uint8_t NUMLEDS = 25;
 
 struct __attribute__((packed)) pixel {
     uint16_t b;
@@ -61,7 +61,7 @@ void setup()
     // 0=0.71mA, 6=3mA, 11=4.7mA
     //buf.GAIN = (1 << 1) | (1 << 6) | (3 << 11);
     //buf.GAIN = 0x03;
-    buf.GAIN.r = 1; buf.GAIN.g = 1; buf.GAIN.b = 1;
+    buf.GAIN.r = 0; buf.GAIN.g = 0; buf.GAIN.b = 0;
     // Enable GPIOs
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA;
 
@@ -144,9 +144,11 @@ pixel hue2rgb(uint16_t hue, uint16_t brightness = 65535) {
 uint16_t i = 0;
 void loop()
 {
-    buf.LEDS[0] = hue2rgb(i);
-    buf.LEDS[1] = hue2rgb(i + 65535/3);
-    buf.LEDS[2] = hue2rgb(i + (65535/3)*2);
+    for(uint k = 0; k < NUMLEDS; k++) {
+        //buf.LEDS[k] = hue2rgb(i + (65535/NUMLEDS)*k); // 30mA in total
+        buf.LEDS[k] = hue2rgb(i + (65535/NUMLEDS)*k, 10000); // 16mA in total
+        //buf.LEDS[k] = hue2rgb(i + (65535/NUMLEDS)*k, 4096); // 14mA in total
+    }
     i+=255;
     debugT();
     sendData();

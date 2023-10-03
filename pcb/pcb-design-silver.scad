@@ -1,6 +1,6 @@
 $fn=12;
-$or = 0.2; // Outline rounding
-layer="outline";
+$or = 0.4; // Outline rounding
+layer="keepout";
 
 //%scale([1,1,2])color("red") stroke_center(0.2) round_edges($or) import_fix("gopher01bw.svg","PCBOutline");
 
