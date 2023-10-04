@@ -21,14 +21,13 @@ byte MODE,SUBMODE = 0;
 const uint8_t LONG_PRESS_CNT = 20;
 
 Matrix matrix;
-const char scrollingText[] = "MOIN JOSCHA! HAPPY BIRTHDAY!";
 uint16_t scrollPosition = 0;
 
-void scrollText() {
+void scrollText(char* text) {
     matrix.fillScreen(0);
     matrix.setCursor(4-scrollPosition,7);
     matrix.setTextColor(0xFFFF);
-    matrix.print(scrollingText);
+    matrix.print(text);
     if(matrix.getCursorX() >= 0) scrollPosition++;
 }
 
@@ -84,10 +83,10 @@ void btnCheck() {
 }
 
 
-void scrollTextRGB() {
-    if(GLOBAL_CNT % 4 == 0) {
+void scrollTextRGB(char* text) {
+    if(GLOBAL_CNT % (4+SUBMODE) == 0) {
         if(!isTextScrolling()) initScroll();
-        scrollText();
+        scrollText(text);
     }
 
     for(uint k = 0; k < NUMLEDS; k++) {
@@ -143,7 +142,10 @@ void debug2() {
 void loop()
 {
     switch (MODE) {
-        case __COUNTER__: scrollTextRGB(); break;
+        case __COUNTER__: scrollTextRGB("HAPPY BIRTHDAY!"); break;
+        case __COUNTER__: scrollTextRGB("MOIN, JOSCHA!"); break;
+        case __COUNTER__: scrollTextRGB("I LOVE GO"); break;
+        case __COUNTER__: scrollTextRGB("UNEXPECTED!"); break;
         case __COUNTER__: white_sparkles_fade(1); break;
         case __COUNTER__: white_sparkles_fade(2); break;
         case __COUNTER__: white_sparkles_fade(4); break;
