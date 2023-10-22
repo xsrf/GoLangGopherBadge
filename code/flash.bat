@@ -1,0 +1,1 @@
+minichlink.exe -a -w .pio\build\genericCH32V003A4M6\firmware.bin flash -B
