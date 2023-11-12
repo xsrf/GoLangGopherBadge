@@ -16,6 +16,7 @@ scale([-1,1,1]) difference(){
     translate([-15.4,9.8,0]) cylinder(r=5,h=20); // Switch
     //translate([15,9,0]) cube([6,6,10],center=true); // micro
     translate([-15.3,-6.5,10]) cube([6,6,20],center=true); // charger
+    translate([0,17,10]) cube([35,6,26],center=true); // needle/pin
 }
 
 module pogo() {
