@@ -23,6 +23,8 @@ const uint8_t LONG_PRESS_CNT = 20;
 Matrix matrix;
 uint16_t scrollPosition = 0;
 
+void usb();
+
 void scrollText(char* text) {
     matrix.fillScreen(0);
     matrix.setCursor(4-scrollPosition,7);
@@ -80,6 +82,16 @@ void btnCheck() {
     }
     BTN_PRESS_CNT = 0;
   }
+
+  if(BtnB()) {
+        //NVIC->CFGR = NVIC_KEY3|(1<<7);
+        usb();
+        sendData();
+        FLASH->BOOT_MODEKEYR = FLASH_KEY1;
+		FLASH->BOOT_MODEKEYR = FLASH_KEY2;
+        FLASH->STATR = 1<<14; // boot into bootloader
+		PFIC->SCTLR = 1<<31; // Reset
+  }
 }
 
 
@@ -98,8 +110,16 @@ void white_sparkles_fade(uint8_t div = 1) {
     if(GLOBAL_CNT % div == 0) for(uint8_t i=0; i<NUMLEDS; i++) fadeBlack(i);
     if((GLOBAL_CNT % (2 + SUBMODE)) == 0) {
         pixel c;
+        c.r = 0;
         c.g = c.b = 0x3FFF;
         setColor(getRandomPixel(), c);
+    }
+}
+
+void rgb_sparkles_fade(uint8_t div = 1) {
+    if(GLOBAL_CNT % div == 0) for(uint8_t i=0; i<NUMLEDS; i++) fadeBlack(i);
+    if((GLOBAL_CNT % (2 + SUBMODE)) == 0) {
+        setColor(getRandomPixel(), hue2rgb(rand16(), 10000));
     }
 }
 
@@ -124,6 +144,72 @@ void heart(uint8_t speed = 4, uint8_t bands = 6) {
     setColor(24, 0, 0, 0);
 }
 
+void usb() {
+    pixel c;
+    c.r = c.g = c.b = 0x00;
+    for(uint k = 0; k < NUMLEDS; k++) {
+        setColor(k, c);
+    }
+    c = hue2rgb(0xFFFF/2, 10000);
+    setColor(2, c);
+    setColor(6, c);
+    setColor(7, c);
+    setColor(8, c);
+    setColor(10, c);
+    setColor(11, c);
+    setColor(12, c);
+    setColor(13, c);
+    setColor(14, c);
+    setColor(16, c);
+    setColor(17, c);
+    setColor(18, c);
+    setColor(21, c);
+    setColor(22, c);
+    setColor(23, c);
+}
+
+void usb2() {
+    pixel c;
+    c.r = c.g = c.b = 0x00;
+    for(uint k = 0; k < NUMLEDS; k++) {
+        setColor(k, c);
+    }
+    c = hue2rgb(0xFFFF/2, 10000);
+    setColor(10, c);
+    setColor(11, c);
+    setColor(12, c);
+    setColor(13, c);
+    setColor(14, c);
+
+    setColor(17, c);
+    setColor(23, c);
+    setColor(24, c);
+
+    setColor(6, c);
+    setColor(2, c);
+    setColor(3, c);
+}
+
+void usb1() {
+    pixel c;
+    c.r = c.g = c.b = 0x00;
+    for(uint k = 0; k < NUMLEDS; k++) {
+        setColor(k, c);
+    }
+    c = hue2rgb(0xFFFF/2, 10000);
+    setColor(10, c);
+    setColor(11, c);
+    setColor(12, c);
+    setColor(13, c);
+    setColor(14, c);
+
+    setColor(17, c);
+    setColor(18, c);
+
+    setColor(6, c);
+    setColor(7, c);
+}
+
 void debug() {
     // For checking RGB color channel order and databits are okay
     setColor(0,0xF00F,0x02,0x03);
@@ -145,10 +231,16 @@ void loop()
         case __COUNTER__: scrollTextRGB("HAPPY BIRTHDAY!"); break;
         case __COUNTER__: scrollTextRGB("MOIN, JOSCHA!"); break;
         case __COUNTER__: scrollTextRGB("I LOVE GO"); break;
+        case __COUNTER__: scrollTextRGB("GO!"); break;
+        case __COUNTER__: scrollTextRGB("PENIS!"); break;
+        case __COUNTER__: scrollTextRGB("TUM-DEV"); break;
+        case __COUNTER__: scrollTextRGB("TUM"); break;
+        case __COUNTER__: scrollTextRGB("ANDREAS"); break;
         case __COUNTER__: scrollTextRGB("UNEXPECTED!"); break;
         case __COUNTER__: white_sparkles_fade(1); break;
         case __COUNTER__: white_sparkles_fade(2); break;
         case __COUNTER__: white_sparkles_fade(4); break;
+        case __COUNTER__: rgb_sparkles_fade(4); break;
         case __COUNTER__: colorbands(SUBMODE+1,5); break;
         case __COUNTER__: colorbands(SUBMODE+1,10); break;
         case __COUNTER__: heart(SUBMODE+1,100); break;
