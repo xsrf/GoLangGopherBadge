@@ -123,7 +123,7 @@ pixel hue2rgb(uint16_t hue, uint16_t brightness = 65535) {
 
 
 uint8_t getRandomPixel() {
-  return floor( rand16()/(0xFFFF/(NUMLEDS-1)) );
+  return rand16() % NUMLEDS;
 }
 
 pixel fadeBlack(pixel color) {

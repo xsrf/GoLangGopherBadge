@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "code"
+		},
+		{
+			"path": "rv003usb/bootloader"
+		}
+	],
+	"settings": {}
+}
